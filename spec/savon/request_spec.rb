@@ -5,6 +5,7 @@ describe Savon::WSDLRequest do
 
   let(:globals)      { Savon::GlobalOptions.new }
   let(:http_request) { HTTPI::Request.new }
+  let(:ciphers)      { OpenSSL::Cipher.ciphers }
 
   def new_wsdl_request
     Savon::WSDLRequest.new(globals, http_request)
@@ -14,6 +15,20 @@ describe Savon::WSDLRequest do
     it "returns an HTTPI::Request" do
       wsdl_request = Savon::WSDLRequest.new(globals)
       expect(wsdl_request.build).to be_an(HTTPI::Request)
+    end
+
+    describe "headers" do
+      it "are set when specified" do
+        globals.headers("Proxy-Authorization" => "Basic auth")
+        configured_http_request = new_wsdl_request.build
+
+        expect(configured_http_request.headers["Proxy-Authorization"]).to eq("Basic auth")
+      end
+
+      it "are not set otherwise" do
+        configured_http_request = new_wsdl_request.build
+        expect(configured_http_request.headers).to_not include("Proxy-Authorization")
+      end
     end
 
     describe "proxy" do
@@ -60,8 +75,8 @@ describe Savon::WSDLRequest do
 
     describe "ssl version" do
       it "is set when specified" do
-        globals.ssl_version(:SSLv3)
-        http_request.auth.ssl.expects(:ssl_version=).with(:SSLv3)
+        globals.ssl_version(:TLSv1)
+        http_request.auth.ssl.expects(:ssl_version=).with(:TLSv1)
 
         new_wsdl_request.build
       end
@@ -74,14 +89,28 @@ describe Savon::WSDLRequest do
 
     describe "ssl verify mode" do
       it "is set when specified" do
-        globals.ssl_verify_mode(:none)
-        http_request.auth.ssl.expects(:verify_mode=).with(:none)
+        globals.ssl_verify_mode(:peer)
+        http_request.auth.ssl.expects(:verify_mode=).with(:peer)
 
         new_wsdl_request.build
       end
 
       it "is not set otherwise" do
         http_request.auth.ssl.expects(:verify_mode=).never
+        new_wsdl_request.build
+      end
+    end
+
+    describe "ssl ciphers" do
+      it "is set when specified" do
+        globals.ssl_ciphers(ciphers)
+        http_request.auth.ssl.expects(:ciphers=).with(ciphers)
+
+        new_wsdl_request.build
+      end
+
+      it "is not set otherwise" do
+        http_request.auth.ssl.expects(:ciphers=).never
         new_wsdl_request.build
       end
     end
@@ -232,6 +261,7 @@ describe Savon::SOAPRequest do
 
   let(:globals)      { Savon::GlobalOptions.new }
   let(:http_request) { HTTPI::Request.new }
+  let(:ciphers)      { OpenSSL::Cipher.ciphers }
 
   def new_soap_request
     Savon::SOAPRequest.new(globals, http_request)
@@ -364,8 +394,8 @@ describe Savon::SOAPRequest do
 
     describe "ssl version" do
       it "is set when specified" do
-        globals.ssl_version(:SSLv3)
-        http_request.auth.ssl.expects(:ssl_version=).with(:SSLv3)
+        globals.ssl_version(:TLSv1)
+        http_request.auth.ssl.expects(:ssl_version=).with(:TLSv1)
 
         new_soap_request.build
       end
@@ -378,14 +408,28 @@ describe Savon::SOAPRequest do
 
     describe "ssl verify mode" do
       it "is set when specified" do
-        globals.ssl_verify_mode(:none)
-        http_request.auth.ssl.expects(:verify_mode=).with(:none)
+        globals.ssl_verify_mode(:peer)
+        http_request.auth.ssl.expects(:verify_mode=).with(:peer)
 
         new_soap_request.build
       end
 
       it "is not set otherwise" do
         http_request.auth.ssl.expects(:verify_mode=).never
+        new_soap_request.build
+      end
+    end
+
+    describe "ssl ciphers" do
+      it "is set when specified" do
+        globals.ssl_ciphers(ciphers)
+        http_request.auth.ssl.expects(:ciphers=).with(ciphers)
+
+        new_soap_request.build
+      end
+
+      it "is not set otherwise" do
+        http_request.auth.ssl.expects(:ciphers=).never
         new_soap_request.build
       end
     end

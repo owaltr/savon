@@ -138,7 +138,7 @@ module Savon
 
     # Proxy server to use for all requests.
     def proxy(proxy)
-      @options[:proxy] = proxy
+      @options[:proxy] = proxy unless proxy.nil?
     end
 
     # A Hash of HTTP headers.
@@ -273,6 +273,19 @@ module Savon
       @options[:ssl_ca_cert] = cert
     end
 
+    def ssl_ciphers(ciphers)
+      @options[:ssl_ciphers] = ciphers
+    end
+
+    # Sets the ca cert path.
+    def ssl_ca_cert_path(path)
+      @options[:ssl_ca_cert_path] = path
+    end
+
+    # Sets the ssl cert store.
+    def ssl_cert_store(store)
+      @options[:ssl_cert_store] = store
+    end
 
     # HTTP basic auth credentials.
     def basic_auth(*credentials)
